@@ -1,5 +1,8 @@
-import math
+import re
+import os
 import sys
+import math
+import fnmatch
 
 
 def getsizeof(obj):
@@ -18,3 +21,20 @@ def getsizeof(obj):
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
     return "%s %s" % (s, size_name[i])
+
+
+def findfiles(which, where=".", ignore_case=True):
+    """
+    Returns list of filenames from `where` path matched by 'which'
+    shell pattern. Matching is case-insensitive.
+    :param which:
+    :param where:
+    :return:
+    """
+
+    # TODO: recursive param with walk() filtering
+    if ignore_case:
+        rule = re.compile(fnmatch.translate(which), re.IGNORECASE)
+    else:
+        rule = re.compile(fnmatch.translate(which))
+    return [name for name in os.listdir(where) if rule.match(name)]
