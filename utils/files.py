@@ -29,6 +29,7 @@ def findfiles(which, where=".", ignore_case=True):
     shell pattern. Matching is case-insensitive.
     :param which:
     :param where:
+    :param ignore_case:
     :return:
     """
 
