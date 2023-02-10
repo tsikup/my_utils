@@ -41,10 +41,10 @@ def findfiles(which, where=".", ignore_case=True):
     return [name for name in os.listdir(where) if rule.match(name)]
 
 
-def get_image_path(input_folders, patient_id, ignore_case=True, ext="*"):
+def get_image_path(folders, patient_id, ignore_case=True, ext="*"):
     s_name = patient_id + ext
     s_path = None
-    for in_folder in input_folders:
+    for in_folder in folders:
         _s_path = findfiles(s_name, in_folder, ignore_case=ignore_case)
         if len(_s_path) == 0:
             continue
