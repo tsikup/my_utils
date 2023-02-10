@@ -39,3 +39,20 @@ def findfiles(which, where=".", ignore_case=True):
     else:
         rule = re.compile(fnmatch.translate(which))
     return [name for name in os.listdir(where) if rule.match(name)]
+
+
+def get_image_path(input_folders, patient_id, ignore_case=True, ext="*"):
+    s_name = patient_id + ext
+    s_path = None
+    for in_folder in input_folders:
+        _s_path = findfiles(s_name, in_folder, ignore_case=ignore_case)
+        if len(_s_path) == 0:
+            continue
+        if len(_s_path) > 1:
+            raise ValueError(f"More than one file found for {s_name}.")
+        if s_path is not None:
+            raise ValueError(
+                f"More than one file found for {s_name} in different folders."
+            )
+        s_path = os.path.join(in_folder, _s_path[0])
+    return s_path
