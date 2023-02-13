@@ -7,6 +7,9 @@ class TelegramNotification:
         self.chat_id = chat_id
 
     def send(self, message):
+        if self.token is None or self.chat_id is None:
+            print("{Local}: " + message)
+            return
         send_noti_to_telegram(message, self.token, self.chat_id)
 
 
