@@ -1,10 +1,12 @@
-import json
-import yaml
-import os
 import glob
+import json
+import os
+import random
 from pathlib import Path
-from dotmap import DotMap
 from shutil import copyfile
+
+import yaml
+from dotmap import DotMap
 from natsort import os_sorted
 
 
@@ -24,7 +26,7 @@ def get_config_from_json(json_file):
     :return: config(namespace) or config(dictionary)
     """
     # parse the configurations from the config json file provided
-    with open(json_file, 'r') as config_file:
+    with open(json_file, "r") as config_file:
         config_dict = json.load(config_file)
 
     # convert the dictionary to a namespace using bunch lib
@@ -40,7 +42,7 @@ def get_config_from_yaml(yaml_file):
     :return: config(namespace) or config(dictionary)
     """
     # parse the configurations from the config json file provided
-    with open(yaml_file, 'r') as config_file:
+    with open(yaml_file, "r") as config_file:
         config_dict = yaml.load(config_file, Loader=yaml.Loader)
 
     # convert the dictionary to a namespace using bunch lib
@@ -50,17 +52,20 @@ def get_config_from_yaml(yaml_file):
 
 
 def get_config(file_path):
-    if file_path.endswith('.yaml') or file_path.endswith('.yml'):
+    if file_path.endswith(".yaml") or file_path.endswith(".yml"):
         return get_config_from_yaml(file_path)
-    elif file_path.endswith('.json'):
+    elif file_path.endswith(".json"):
         return get_config_from_json(file_path)
 
 
 def process_config(file, name, output_dir, dirs=True, config_copy=True):
-    print('Processing config..')
+    print("Processing config..")
     config, _ = get_config(file)
 
     config.exp.name = name
+
+    if config.trainer.seed is None:
+        config.trainer.seed = random.randint(0, 2**32 - 1)
 
     if config.exp.name:
         base_dir = os.path.join(output_dir, config.exp.name)
@@ -70,29 +75,49 @@ def process_config(file, name, output_dir, dirs=True, config_copy=True):
         new_version = 0
         if os.path.exists(config.callbacks.tensorboard_log_dir):
             # Get experiment version
-            version = os_sorted(glob.glob(os.path.join(config.callbacks.tensorboard_log_dir, 'version_*')))
+            version = os_sorted(
+                glob.glob(
+                    os.path.join(config.callbacks.tensorboard_log_dir, "version_*")
+                )
+            )
             if len(version) > 0:
-                new_version = int(os.path.basename(version[-1]).split('_')[-1]) + 1
-        config.callbacks.checkpoint_dir = os.path.join(base_dir, "checkpoints", f'version_{new_version}')
+                new_version = int(os.path.basename(version[-1]).split("_")[-1]) + 1
+        config.callbacks.checkpoint_dir = os.path.join(
+            base_dir, "checkpoints", f"version_{new_version}"
+        )
 
         config.callbacks.backup_dir = os.path.join(base_dir, "backup/")
-        if config.mode == 'train':
+        if config.mode == "train":
             config.results.performance_dir = os.path.join(base_dir, "results/online")
-            config_dir = config.callbacks.checkpoint_dir.replace('/checkpoints/', '/configs/')
+            config_dir = config.callbacks.checkpoint_dir.replace(
+                "/checkpoints/", "/configs/"
+            )
             config.callbacks.config_dir = config_dir
             if dirs:
-                create_dirs([config.callbacks.tensorboard_log_dir, config.callbacks.checkpoint_dir,
-                             config.results.performance_dir, config_dir])
+                create_dirs(
+                    [
+                        config.callbacks.tensorboard_log_dir,
+                        config.callbacks.checkpoint_dir,
+                        config.results.performance_dir,
+                        config_dir,
+                    ]
+                )
             if config_copy:
                 copyfile(file, os.path.join(config_dir, Path(file).name))
 
-        elif config.mode == 'eval':
-            dirname = os.path.dirname(os.path.dirname(os.path.dirname(config.tester.checkpoint_path)))
+        elif config.mode == "eval":
+            dirname = os.path.dirname(
+                os.path.dirname(os.path.dirname(config.tester.checkpoint_path))
+            )
             checkpoint = os.path.basename(config.tester.checkpoint_path)
-            config.results.performance_dir = os.path.join(dirname, 'results', 'offline', checkpoint)
+            config.results.performance_dir = os.path.join(
+                dirname, "results", "offline", checkpoint
+            )
             if dirs:
                 create_dirs([config.results.performance_dir])
             if config_copy:
-                copyfile(file, os.path.join(config.results.performance_dir, 'config.json'))
+                copyfile(
+                    file, os.path.join(config.results.performance_dir, "config.json")
+                )
 
     return config
