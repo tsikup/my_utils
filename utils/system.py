@@ -5,7 +5,7 @@ import torch
 import psutil
 import platform
 import numpy as np
-import pytorch_lightning as pl
+import lightning as L
 
 
 def info_system():
@@ -21,7 +21,9 @@ def info_system():
 
 def info_cuda():
     return {
-        "GPU": [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
+        "GPU": [
+            torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())
+        ],
         # 'nvidia_driver': get_nvidia_driver_version(run_lambda),
         "available": torch.cuda.is_available(),
         "version": torch.version.cuda,
@@ -33,7 +35,7 @@ def info_packages():
         "numpy": np.__version__,
         "pyTorch_version": torch.__version__,
         "pyTorch_debug": torch.version.debug,
-        "pytorch-lightning": pl.__version__,
+        "lightning": L.__version__,
         "tqdm": tqdm.__version__,
     }
 
@@ -58,7 +60,11 @@ def nice_print(details, level=0):
 
 
 def collect_env_details():
-    details = {"System": info_system(), "CUDA": info_cuda(), "Packages": info_packages()}
+    details = {
+        "System": info_system(),
+        "CUDA": info_cuda(),
+        "Packages": info_packages(),
+    }
     lines = nice_print(details)
     text = os.linesep.join(lines)
     return text
