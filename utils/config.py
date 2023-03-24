@@ -3,7 +3,6 @@ import json
 import os
 import random
 from pathlib import Path
-from shutil import copyfile
 
 import yaml
 from dotmap import DotMap
@@ -103,7 +102,8 @@ def process_config(file, name, output_dir, dirs=True, config_copy=True):
                     ]
                 )
             if config_copy:
-                copyfile(file, os.path.join(config_dir, Path(file).name))
+                with open(os.path.join(config_dir, Path(file).stem + ".json"), "w") as f:
+                    json.dump(dict(config), f)
 
         elif config.mode == "eval":
             dirname = os.path.dirname(
@@ -116,8 +116,7 @@ def process_config(file, name, output_dir, dirs=True, config_copy=True):
             if dirs:
                 create_dirs([config.results.performance_dir])
             if config_copy:
-                copyfile(
-                    file, os.path.join(config.results.performance_dir, "config.json")
-                )
+                with open(os.path.join(config.results.performance_dir, "config.json"), "w") as f:
+                    json.dump(dict(config), f)
 
     return config
