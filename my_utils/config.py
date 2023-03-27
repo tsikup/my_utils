@@ -102,7 +102,9 @@ def process_config(file, name, output_dir, dirs=True, config_copy=True):
                     ]
                 )
             if config_copy:
-                with open(os.path.join(config_dir, Path(file).stem + ".json"), "w") as f:
+                with open(
+                    os.path.join(config_dir, Path(file).stem + ".json"), "w"
+                ) as f:
                     json.dump(dict(config), f)
 
         elif config.mode == "eval":
@@ -116,7 +118,9 @@ def process_config(file, name, output_dir, dirs=True, config_copy=True):
             if dirs:
                 create_dirs([config.results.performance_dir])
             if config_copy:
-                with open(os.path.join(config.results.performance_dir, "config.json"), "w") as f:
+                with open(
+                    os.path.join(config.results.performance_dir, "config.json"), "w"
+                ) as f:
                     json.dump(dict(config), f)
 
     return config
