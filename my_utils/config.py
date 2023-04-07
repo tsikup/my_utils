@@ -3,6 +3,7 @@ import json
 import os
 import random
 from pathlib import Path
+from typing import Union
 
 import yaml
 from dotmap import DotMap
@@ -57,7 +58,14 @@ def get_config(file_path):
         return get_config_from_json(file_path)
 
 
-def process_config(file, name, output_dir, dirs=True, config_copy=True):
+def process_config(
+    file: Union[Path, str],
+    name: str,
+    output_dir: Union[Path, str],
+    fold: int = None,
+    mkdirs=True,
+    config_copy=True,
+):
     print("Processing config..")
     config, _ = get_config(file)
 
@@ -66,8 +74,19 @@ def process_config(file, name, output_dir, dirs=True, config_copy=True):
     if config.trainer.seed is None:
         config.trainer.seed = random.randint(0, 2**32 - 1)
 
+    config.filename = file
+
+    config.dataset.train_folder = os.path.join(
+        config.dataset.train_folder, f"{fold}_fold/train"
+    )
+    config.dataset.val_folder = os.path.join(
+        config.dataset.val_folder, f"{fold}_fold/val"
+    )
+
     if config.exp.name:
         base_dir = os.path.join(output_dir, config.exp.name)
+        if fold is not None:
+            base_dir = os.path.join(base_dir, f"{fold}_fold")
         config.experiment_dir = base_dir
         config.callbacks.tensorboard_log_dir = os.path.join(base_dir, "logs/")
 
@@ -92,7 +111,7 @@ def process_config(file, name, output_dir, dirs=True, config_copy=True):
                 "/checkpoints/", "/configs/"
             )
             config.callbacks.config_dir = config_dir
-            if dirs:
+            if mkdirs:
                 create_dirs(
                     [
                         config.callbacks.tensorboard_log_dir,
@@ -115,7 +134,7 @@ def process_config(file, name, output_dir, dirs=True, config_copy=True):
             config.results.performance_dir = os.path.join(
                 dirname, "results", "offline", checkpoint
             )
-            if dirs:
+            if mkdirs:
                 create_dirs([config.results.performance_dir])
             if config_copy:
                 with open(
