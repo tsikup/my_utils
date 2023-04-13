@@ -65,7 +65,6 @@ def process_config(
     fold: int = None,
     mkdirs=True,
     config_copy=True,
-    version=None,
 ):
     print("Processing config..")
     config, _ = get_config(file)
@@ -94,7 +93,7 @@ def process_config(
         new_version = 0
         if os.path.exists(config.callbacks.tensorboard_log_dir):
             # Get experiment version
-            if version is None:
+            if not config.trainer.version:
                 version = os_sorted(
                     glob.glob(
                         os.path.join(config.callbacks.tensorboard_log_dir, "version_*")
@@ -103,7 +102,7 @@ def process_config(
                 if len(version) > 0:
                     new_version = int(os.path.basename(version[-1]).split("_")[-1]) + 1
             else:
-                new_version = version
+                new_version = config.trainer.version
         config.callbacks.checkpoint_dir = os.path.join(
             base_dir, "checkpoints", f"version_{new_version}"
         )
